@@ -301,7 +301,7 @@ class PyQt6Window(BaseWindow):
         self._buffer_width = int(width * self._widget.devicePixelRatio())
         self._buffer_height = int(height * self._widget.devicePixelRatio())
 
-        if self._ctx:
+        if hasattr(self, "_ctx"):
             self.set_default_viewport()
 
         # Make sure we notify the example about the resize
