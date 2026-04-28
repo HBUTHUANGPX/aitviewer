@@ -176,7 +176,6 @@ class Renderer:
 
         # Configure OpenGL context.
         self.ctx.enable_only(moderngl.DEPTH_TEST | moderngl.BLEND | moderngl.CULL_FACE)
-        self.ctx.enable(moderngl.PROGRAM_POINT_SIZE)
         self.ctx.cull_face = "back"
         self.ctx.blend_func = (
             moderngl.SRC_ALPHA,

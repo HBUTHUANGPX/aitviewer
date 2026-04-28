@@ -110,6 +110,10 @@ class Node(object):
         self.fragmap = False
         self.outline = False
 
+        # Keep a reference to the OpenGL context passed into `make_renderable`.
+        # Each subclass decides if she needs that.
+        self.ctx = None
+
         # Programs for render passes. Subclasses are responsible for setting these.
         self.depth_only_program = None  # Required for depth_prepass and cast_shadow passes
         self.fragmap_program = None  # Required for fragmap pass
