@@ -178,40 +178,63 @@ class GaussianSplats(Node):
             elements = f.readline().decode("utf-8").strip().lower()
             count = int(elements.split()[2])
 
-            # Read until end of header.
-            while f.readline().decode("utf-8").strip().lower() != "end_header":
-                pass
+            # Parse header to determine field offsets.
+            has_normals = False
+            sh_coeffs = 0
+            header_line = f.readline().decode("utf-8").strip().lower()
+            
+            while header_line != "end_header":
+                if header_line.startswith("property float"):
+                    # Count spherical harmonics coefficients.
+                    if "f_dc" in header_line or "f_rest" in header_line:
+                        sh_coeffs += 1
+                    # Check for normal properties.
+                    elif "nx" in header_line or "ny" in header_line or "nz" in header_line:
+                        has_normals = True
+                header_line = f.readline().decode("utf-8").strip().lower()
 
-            # Number of 32 bit floats used to encode Spherical Harmonics coefficients.
-            # The last multiplication by 3 is because we have 3 components (RGB) for each coefficient.
-            sh_coeffs = (sh_degree + 1) * (sh_degree + 1) * 3
+            # If we couldn't determine SH coefficients from header, use the old method.
+            if sh_coeffs == 0:
+                sh_coeffs = (sh_degree + 1) * (sh_degree + 1) * 3
 
-            # Position (vec3), normal (vec3), spherical harmonics (sh_coeffs), opacity (float),
-            # scale (vec3) and rotation (quaternion). All values are float32 (4 bytes).
-            size = count * (3 + 3 + sh_coeffs + 1 + 3 + 4) * 4
+            # Calculate data size based on detected fields.
+            # Position (vec3) + optional normal (vec3) + spherical harmonics + opacity + scale (vec3) + rotation (quaternion)
+            base_size = 3 + sh_coeffs + 1 + 3 + 4  # position + sh + opacity + scale + rotation
+            if has_normals:
+                base_size += 3  # add normal size
+            size = count * base_size * 4  # 4 bytes per float32
 
             data = f.read(size)
             arr = np.frombuffer(data, dtype=np.float32).reshape((count, -1))
 
-            # Positions.
-            position = arr[:, :3].copy()
-
-            # Currently we don't need normals for rendering.
-            # normal = arr[:, 3:6].copy()
-
+            # Calculate field offsets.
+            offset = 0
+            
+            # Positions (always first).
+            position = arr[:, offset:offset+3].copy()
+            offset += 3
+            
+            # Normals (if present).
+            if has_normals:
+                # Skip normals - we don't use them for rendering.
+                offset += 3
+            
             # Spherical harmonic coefficients.
-            sh = arr[:, 6 : 6 + sh_coeffs].copy()
-
-            # Activate alpha: sigmoid(alpha).
-            opacity = 1.0 / (1.0 + np.exp(-arr[:, 6 + sh_coeffs]))
-
-            # Exponentiate scale.
-            scale = np.exp(arr[:, 7 + sh_coeffs : 10 + sh_coeffs])
-
-            # Normalize quaternions.
-            rotation = arr[:, 10 + sh_coeffs : 14 + sh_coeffs].copy()
+            sh = arr[:, offset:offset+sh_coeffs].copy()
+            offset += sh_coeffs
+            
+            # Opacity (activate with sigmoid).
+            opacity = 1.0 / (1.0 + np.exp(-arr[:, offset]))
+            offset += 1
+            
+            # Scale (exponentiate).
+            scale = np.exp(arr[:, offset:offset+3])
+            offset += 3
+            
+            # Rotation (normalize quaternions).
+            rotation = arr[:, offset:offset+4].copy()
             rotation /= np.linalg.norm(rotation, ord=2, axis=1)[..., np.newaxis]
-
+            
             # Convert from wxyz to xyzw.
             rotation = np.roll(rotation, -1, axis=1)
 
