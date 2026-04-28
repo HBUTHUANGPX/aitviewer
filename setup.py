@@ -26,6 +26,7 @@ requirements = [
     "Pillow",
     "websockets",
     "usd-core>=23.5",
+    "black>=26.3.0"
 ]
 
 # Choose PyQt version depending on environment variable.
