@@ -44,6 +44,10 @@ class SMPLSequence(Node):
         trans=None,
         poses_left_hand=None,
         poses_right_hand=None,
+        poses_jaw=None,
+        poses_leye=None,
+        poses_reye=None,
+        expression=None,
         device=None,
         dtype=None,
         include_root=True,
@@ -104,6 +108,9 @@ class SMPLSequence(Node):
         self.poses_body = to_torch(poses_body, dtype=dtype, device=device)
         self.poses_left_hand = to_torch(poses_left_hand, dtype=dtype, device=device)
         self.poses_right_hand = to_torch(poses_right_hand, dtype=dtype, device=device)
+        self.poses_jaw = to_torch(poses_jaw, dtype=dtype, device=device)
+        self.poses_leye = to_torch(poses_leye, dtype=dtype, device=device)
+        self.poses_reye = to_torch(poses_reye, dtype=dtype, device=device)
 
         poses_root = poses_root if poses_root is not None else torch.zeros([len(poses_body), 3])
         betas = betas if betas is not None else torch.zeros([1, self.smpl_layer.num_betas])
@@ -112,6 +119,7 @@ class SMPLSequence(Node):
         self.poses_root = to_torch(poses_root, dtype=dtype, device=device)
         self.betas = to_torch(betas, dtype=dtype, device=device)
         self.trans = to_torch(trans, dtype=dtype, device=device)
+        self.expression = to_torch(expression, dtype=dtype, device=device)
 
         if len(self.betas.shape) == 1:
             self.betas = self.betas.unsqueeze(0)
@@ -159,18 +167,11 @@ class SMPLSequence(Node):
 
         # First convert the relative joint angles to global joint angles in rotation matrix form.
         if self.smpl_layer.model_type != "flame":
-            if self.smpl_layer.model_type != "mano":
-                global_oris = local_to_global(
-                    torch.cat([self.poses_root, self.poses_body, self.poses_left_hand, self.poses_right_hand], dim=-1),
-                    self.skeleton[:, 0],
-                    output_format="rotmat",
-                )
-            else:
-                global_oris = local_to_global(
-                    torch.cat([self.poses_root, self.poses_body], dim=-1),
-                    self.skeleton[:, 0],
-                    output_format="rotmat",
-                )
+            global_oris = local_to_global(
+                torch.cat([self.poses_root, self.poses_body], dim=-1),
+                self.skeleton[:, 0],
+                output_format="rotmat",
+            )
             global_oris = c2c(global_oris.reshape((self.n_frames, -1, 3, 3)))
         else:
             global_oris = np.tile(np.eye(3), self.joints.shape[:-1])[np.newaxis]
@@ -386,6 +387,11 @@ class SMPLSequence(Node):
             )
             trans = self.trans[self.current_frame_id][None, :]
 
+            poses_jaw = None if self.poses_jaw is None else self.poses_jaw[self.current_frame_id][None, :]
+            poses_leye = None if self.poses_leye is None else self.poses_leye[self.current_frame_id][None, :]
+            poses_reye = None if self.poses_reye is None else self.poses_reye[self.current_frame_id][None, :]
+            expression = None if self.expression is None else self.expression[self.current_frame_id][None, :]
+
             if self.betas.shape[0] == self.n_frames:
                 betas = self.betas[self.current_frame_id][None, :]
             else:
@@ -406,6 +412,10 @@ class SMPLSequence(Node):
             poses_right_hand = self.poses_right_hand
             trans = self.trans
             betas = self.betas
+            poses_jaw = self.poses_jaw
+            poses_leye = self.poses_leye
+            poses_reye = self.poses_reye
+            expression = self.expression
 
         if self.smpl_layer.model_type == "mano":
             verts, joints = self.smpl_layer(
@@ -423,6 +433,10 @@ class SMPLSequence(Node):
                 poses_right_hand=poses_right_hand,
                 betas=betas,
                 trans=trans,
+                poses_jaw=poses_jaw,
+                poses_leye=poses_leye,
+                poses_reye=poses_reye,
+                expression=expression,
             )
 
         # Apply post_fk_func if specified.
@@ -434,6 +448,7 @@ class SMPLSequence(Node):
             if not self.smpl_layer.model_type == "mano"
             else self.smpl_layer.skeletons()["all"].T
         )
+
         faces = self.smpl_layer.bm.faces.astype(np.int64)
         joints = joints[:, : skeleton.shape[0]]
 
