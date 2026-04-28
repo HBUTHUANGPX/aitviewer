@@ -27,10 +27,7 @@ requirements = [
     "websockets",
     "usd-core>=23.5",
     "black>=26.3.0",
-<<<<<<< feature/smplx-support
-=======
     "isort",
->>>>>>> main
 ]
 
 # Choose PyQt version depending on environment variable.
