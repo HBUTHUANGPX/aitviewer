@@ -182,7 +182,7 @@ class GaussianSplats(Node):
             has_normals = False
             sh_coeffs = 0
             header_line = f.readline().decode("utf-8").strip().lower()
-            
+
             while header_line != "end_header":
                 if header_line.startswith("property float"):
                     # Count spherical harmonics coefficients.
@@ -209,32 +209,32 @@ class GaussianSplats(Node):
 
             # Calculate field offsets.
             offset = 0
-            
+
             # Positions (always first).
-            position = arr[:, offset:offset+3].copy()
+            position = arr[:, offset : offset + 3].copy()
             offset += 3
-            
+
             # Normals (if present).
             if has_normals:
                 # Skip normals - we don't use them for rendering.
                 offset += 3
-            
+
             # Spherical harmonic coefficients.
-            sh = arr[:, offset:offset+sh_coeffs].copy()
+            sh = arr[:, offset : offset + sh_coeffs].copy()
             offset += sh_coeffs
-            
+
             # Opacity (activate with sigmoid).
             opacity = 1.0 / (1.0 + np.exp(-arr[:, offset]))
             offset += 1
-            
+
             # Scale (exponentiate).
-            scale = np.exp(arr[:, offset:offset+3])
+            scale = np.exp(arr[:, offset : offset + 3])
             offset += 3
-            
+
             # Rotation (normalize quaternions).
-            rotation = arr[:, offset:offset+4].copy()
+            rotation = arr[:, offset : offset + 4].copy()
             rotation /= np.linalg.norm(rotation, ord=2, axis=1)[..., np.newaxis]
-            
+
             # Convert from wxyz to xyzw.
             rotation = np.roll(rotation, -1, axis=1)
 
