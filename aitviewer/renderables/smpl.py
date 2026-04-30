@@ -93,10 +93,6 @@ class SMPLSequence(Node):
         """
         assert len(poses_body.shape) == 2
 
-        # Set model icon
-        if smpl_layer.model_type == "flame":
-            icon = "\u0091"
-
         if device is None:
             device = C.device
         if dtype is None:
@@ -171,16 +167,13 @@ class SMPLSequence(Node):
             self._add_node(self.skeleton_seq)
 
         # First convert the relative joint angles to global joint angles in rotation matrix form.
-        if self.smpl_layer.model_type != "flame":
-            poses_body = self.to_joint_angles(self.poses_body)
-            global_oris = local_to_global(
-                torch.cat([self.poses_root, poses_body], dim=-1),
-                self.skeleton[:, 0],
-                output_format="rotmat",
-            )
-            global_oris = c2c(global_oris.reshape((self.n_frames, -1, 3, 3)))
-        else:
-            global_oris = np.tile(np.eye(3), self.joints.shape[:-1])[np.newaxis]
+        poses_body = self.to_joint_angles(self.poses_body)
+        global_oris = local_to_global(
+            torch.cat([self.poses_root, poses_body], dim=-1),
+            self.skeleton[:, 0],
+            output_format="rotmat",
+        )
+        global_oris = c2c(global_oris.reshape((self.n_frames, -1, 3, 3)))
 
         if self._z_up and not C.z_up:
             self.rotation = np.matmul(np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]), self.rotation)
@@ -537,10 +530,9 @@ class SMPLSequence(Node):
                 )
 
             # Update rigid bodies.
-            if self.smpl_layer.model_type != "flame":
-                global_oris = local_to_global(pose, self.skeleton[:, 0], output_format="rotmat")
-                global_oris = global_oris.reshape((-1, 3, 3))
-                self.rbs.current_rb_ori = c2c(global_oris)
+            global_oris = local_to_global(pose, self.skeleton[:, 0], output_format="rotmat")
+            global_oris = global_oris.reshape((-1, 3, 3))
+            self.rbs.current_rb_ori = c2c(global_oris)
             self.rbs.current_rb_pos = self.joints[self.current_frame_id]
 
             # Update mesh.
@@ -566,14 +558,13 @@ class SMPLSequence(Node):
 
             # Update rigid bodies.
             poses_body = self.to_joint_angles(poses_body)
-            if self.smpl_layer.model_type != "flame":
-                global_oris = local_to_global(
-                    torch.cat([poses_root, poses_body], dim=-1),
-                    self.skeleton[:, 0],
-                    output_format="rotmat",
-                )
-                global_oris = global_oris.reshape((self.n_frames, -1, 3, 3))
-                self.rbs.rb_ori = c2c(global_oris)
+            global_oris = local_to_global(
+                torch.cat([poses_root, poses_body], dim=-1),
+                self.skeleton[:, 0],
+                output_format="rotmat",
+            )
+            global_oris = global_oris.reshape((self.n_frames, -1, 3, 3))
+            self.rbs.rb_ori = c2c(global_oris)
             self.rbs.rb_pos = self.joints
 
             # Update mesh
