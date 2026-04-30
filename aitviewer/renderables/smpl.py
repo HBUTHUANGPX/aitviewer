@@ -49,7 +49,7 @@ class SMPLSequence(Node):
         poses_reye=None,
         expression=None,
         device=None,
-        dtype=None,
+        dtype=torch.float32,
         include_root=True,
         normalize_root=False,
         is_rigged=True,
@@ -57,6 +57,9 @@ class SMPLSequence(Node):
         z_up=False,
         post_fk_func=None,
         icon="\u0093",
+        skeleton_radius=0.01,
+        rb_radius=0.02,
+        rb_length=0.1,
         **kwargs,
     ):
         """
@@ -83,14 +86,15 @@ class SMPLSequence(Node):
           Shapes are:
             if current_frame_only is False: vertices (F, V, 3) and joints (F, N_JOINTS, 3)
             if current_frame_only is True:  vertices (1, V, 3) and joints (1, N_JOINTS, 3)
+        :skeleton_radius: Size indication for spheres used to represent the skeleton.
+        :rb_radius: Size indication for sphere of rigid bodies used to represent the joints.
+        :rb_length: Size indication for arrow length of rigid bodies used to represent the joints.
         :param kwargs: Remaining arguments for rendering.
         """
         assert len(poses_body.shape) == 2
 
         # Set model icon
-        if smpl_layer.model_type == "mano":
-            icon = "\u0092"
-        elif smpl_layer.model_type == "flame":
+        if smpl_layer.model_type == "flame":
             icon = "\u0091"
 
         if device is None:
@@ -159,6 +163,7 @@ class SMPLSequence(Node):
             self.skeleton_seq = Skeletons(
                 self.joints,
                 self.skeleton,
+                radius=skeleton_radius,
                 gui_affine=False,
                 color=(1.0, 177 / 255, 1 / 255, 1.0),
                 name="Skeleton",
@@ -167,8 +172,9 @@ class SMPLSequence(Node):
 
         # First convert the relative joint angles to global joint angles in rotation matrix form.
         if self.smpl_layer.model_type != "flame":
+            poses_body = self.to_joint_angles(self.poses_body)
             global_oris = local_to_global(
-                torch.cat([self.poses_root, self.poses_body], dim=-1),
+                torch.cat([self.poses_root, poses_body], dim=-1),
                 self.skeleton[:, 0],
                 output_format="rotmat",
             )
@@ -179,9 +185,10 @@ class SMPLSequence(Node):
         if self._z_up and not C.z_up:
             self.rotation = np.matmul(np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]), self.rotation)
 
-        if self.smpl_layer.model_type != "mano":
-            self.rbs = RigidBodies(self.joints, global_oris, length=0.1, gui_affine=False, name="Joint Angles")
-            self._add_node(self.rbs, enabled=self._show_joint_angles)
+        self.rbs = RigidBodies(
+            self.joints, global_oris, radius=rb_radius, length=rb_length, gui_affine=False, name="Joint Angles"
+        )
+        self._add_node(self.rbs, enabled=self._show_joint_angles)
 
         self.mesh_seq = Meshes(
             self.vertices,
@@ -368,16 +375,32 @@ class SMPLSequence(Node):
     def _edit_mode(self):
         return self.selected_mode == "edit"
 
+    def to_joint_angles(self, poses):
+        """
+        Makes sure poses are in joint angles for visualization purposes. This is not required by
+        the base class, but might be required by subclasses when they represent poses not as
+        joint angles but for instance as PCA components.
+        :param poses: A torch tensor of shape (N, D) where D is the joint angle dimension, e.g. N_JOINTS * 3 for SMPL body poses or N_PCA_COMP for MANO hand poses.
+        """
+        return poses
+
+    def to_joint_angles_inv(self, poses):
+        """
+        Does the inverse of `to_joint_angles`.
+        :param poses: A torch tensor of shape (N, N_JOINTS*3).
+        """
+        return poses
+
     def fk(self, current_frame_only=False):
         """Get joints and/or vertices from the poses."""
         if current_frame_only:
             # Use current frame data.
             if self._edit_mode:
                 poses_root = self._edit_pose[:3][None, :]
-                poses_body = self._edit_pose[3:][None, :]
+                poses_body = self.to_joint_angles_inv(self._edit_pose[3:][None, :])
             else:
-                poses_body = self.poses_body[self.current_frame_id][None, :]
                 poses_root = self.poses_root[self.current_frame_id][None, :]
+                poses_body = self.poses_body[self.current_frame_id][None, :]
 
             poses_left_hand = (
                 None if self.poses_left_hand is None else self.poses_left_hand[self.current_frame_id][None, :]
@@ -403,7 +426,7 @@ class SMPLSequence(Node):
                 poses_body = self.poses_body.clone()
 
                 poses_root[self.current_frame_id] = self._edit_pose[:3]
-                poses_body[self.current_frame_id] = self._edit_pose[3:]
+                poses_body[self.current_frame_id] = self.to_joint_angles_inv(self._edit_pose[3:])
             else:
                 poses_body = self.poses_body
                 poses_root = self.poses_root
@@ -417,37 +440,24 @@ class SMPLSequence(Node):
             poses_reye = self.poses_reye
             expression = self.expression
 
-        if self.smpl_layer.model_type == "mano":
-            verts, joints = self.smpl_layer(
-                hand_pose=poses_body,
-                betas=betas,
-                global_orient=poses_root,
-                trans=trans,
-                mano=True,
-            )
-        else:
-            verts, joints = self.smpl_layer(
-                poses_root=poses_root,
-                poses_body=poses_body,
-                poses_left_hand=poses_left_hand,
-                poses_right_hand=poses_right_hand,
-                betas=betas,
-                trans=trans,
-                poses_jaw=poses_jaw,
-                poses_leye=poses_leye,
-                poses_reye=poses_reye,
-                expression=expression,
-            )
+        verts, joints = self.smpl_layer(
+            poses_root=poses_root,
+            poses_body=poses_body,
+            poses_left_hand=poses_left_hand,
+            poses_right_hand=poses_right_hand,
+            betas=betas,
+            trans=trans,
+            poses_jaw=poses_jaw,
+            poses_leye=poses_leye,
+            poses_reye=poses_reye,
+            expression=expression,
+        )
 
         # Apply post_fk_func if specified.
         if self.post_fk_func:
             verts, joints = self.post_fk_func(self, verts, joints, current_frame_only)
 
-        skeleton = (
-            self.smpl_layer.skeletons()["body"].T
-            if not self.smpl_layer.model_type == "mano"
-            else self.smpl_layer.skeletons()["all"].T
-        )
+        skeleton = self.smpl_layer.skeletons()["body"].T
 
         faces = self.smpl_layer.bm.faces.astype(np.int64)
         joints = joints[:, : skeleton.shape[0]]
@@ -469,14 +479,15 @@ class SMPLSequence(Node):
         mask_avail[ids] = False
 
         # Interpolate poses.
-        all_poses = torch.cat([self.poses_root, self.poses_body], dim=-1)
+        pb = self.to_joint_angles(self.poses_body)
+        all_poses = torch.cat([self.poses_root, pb], dim=-1)
         ps = np.reshape(all_poses.cpu().numpy(), (self.n_frames, -1, 3))
         ps_interp = interpolate_rotations(ps[mask_avail], all_ids[mask_avail], ids)
         all_poses[ids] = torch.from_numpy(ps_interp.reshape(len(ids), -1)).to(
             dtype=self.betas.dtype, device=self.betas.device
         )
         self.poses_root = all_poses[:, :3]
-        self.poses_body = all_poses[:, 3:]
+        self.poses_body = self.to_joint_angles_inv(all_poses[:, 3:])
 
         # Interpolate global translation.
         ts = self.trans.cpu().numpy()
@@ -513,12 +524,14 @@ class SMPLSequence(Node):
 
             # Use current frame data.
             if self._edit_mode:
+                # Here we want the pose to be in joint angle format,
+                # which _edit_pose always is, so no need to convert back.
                 pose = self._edit_pose
             else:
                 pose = torch.cat(
                     [
                         self.poses_root[self.current_frame_id],
-                        self.poses_body[self.current_frame_id],
+                        self.to_joint_angles(self.poses_body[self.current_frame_id]),
                     ],
                     dim=-1,
                 )
@@ -546,12 +559,13 @@ class SMPLSequence(Node):
                 poses_body = self.poses_body.clone()
 
                 poses_root[self.current_frame_id] = self._edit_pose[:3]
-                poses_body[self.current_frame_id] = self._edit_pose[3:]
+                poses_body[self.current_frame_id] = self.to_joint_angles_inv(self._edit_pose[3:])
             else:
                 poses_body = self.poses_body
                 poses_root = self.poses_root
 
             # Update rigid bodies.
+            poses_body = self.to_joint_angles(poses_body)
             if self.smpl_layer.model_type != "flame":
                 global_oris = local_to_global(
                     torch.cat([poses_root, poses_body], dim=-1),
@@ -693,23 +707,29 @@ class SMPLSequence(Node):
 
         if imgui.button("Apply"):
             self.poses_root[self.current_frame_id] = self._edit_pose[:3]
-            self.poses_body[self.current_frame_id] = self._edit_pose[3:]
+            self.poses_body[self.current_frame_id] = self.to_joint_angles_inv(self._edit_pose[3:])
             self._edit_pose_dirty = False
             self.redraw(current_frame_only=True)
+
         imgui.same_line()
+
         if imgui.button("Apply to all"):
             edit_rots = Rotation.from_rotvec(np.reshape(self._edit_pose.cpu().numpy(), (-1, 3)))
             base_rots = Rotation.from_rotvec(np.reshape(self.poses[self.current_frame_id].cpu().numpy(), (-1, 3)))
             relative = edit_rots * base_rots.inv()
+            poses_body_ja = self.to_joint_angles(self.poses_body)
             for i in range(self.n_frames):
                 root = Rotation.from_rotvec(np.reshape(self.poses_root[i].cpu().numpy(), (-1, 3)))
                 self.poses_root[i] = torch.from_numpy((relative[0] * root).as_rotvec().flatten())
 
-                body = Rotation.from_rotvec(np.reshape(self.poses_body[i].cpu().numpy(), (-1, 3)))
-                self.poses_body[i] = torch.from_numpy((relative[1:] * body).as_rotvec().flatten())
+                body = Rotation.from_rotvec(np.reshape(poses_body_ja[i].cpu().numpy(), (-1, 3)))
+                poses_body_ja[i] = torch.from_numpy((relative[1:] * body).as_rotvec().flatten())
+            self.poses_body = self.to_joint_angles_inv(poses_body_ja)
             self._edit_pose_dirty = False
             self.redraw()
+
         imgui.same_line()
+
         if imgui.button("Reset"):
             self._edit_pose = self.poses[self.current_frame_id]
             self._edit_pose_dirty = False
