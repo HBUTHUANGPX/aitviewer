@@ -23,18 +23,18 @@ if __name__ == "__main__":
     # Number of total frames, including frames that are missing.
     N = poses.shape[0]
 
-    # Number of existing frames of data. We are going to remove 100 frames to create holes in our data.
-    M = N - 100
+    # Number of existing frames of data. We are going to remove 50 frames to create holes in our data.
+    M = N - 50
 
-    # Create a hole of 100 frames in the data, we now have M frames of data.
-    # In this example we suppose that we have 25 frames of data followed by a hole of 100 frames.
-    p = np.concatenate((poses[:25], poses[125:]))
-    b = np.concatenate((betas[:25], betas[125:]))
+    # Create a hole of 50 frames in the data, we now have M frames of data.
+    # In this example we suppose that we have 25 frames of data followed by a hole of 50 frames.
+    p = np.concatenate((poses[:25], poses[75:]))
+    b = np.concatenate((betas[:25], betas[75:]))
 
     # Create a mask with N frames.
     enabled_frames = np.ones(N, dtype=bool)
-    # Set to zero the values at the indices of the 100 missing frames. There are now only M ones in the mask.
-    enabled_frames[25:125] = 0
+    # Set to zero the values at the indices of the 50 missing frames. There are now only M ones in the mask.
+    enabled_frames[25:75] = 0
 
     # Instantiate an SMPL sequence using the parameters and the enabled_frames mask.
     smpl_layer = SMPLLayer(model_type="smpl", gender="neutral", device=C.device)
@@ -51,10 +51,10 @@ if __name__ == "__main__":
     # We do the same for a second sequence but removing a different range of frames.
     # Notice how the two sequences remain in sync, since the sequence is only advanced
     # during frames that are enabled (where the mask value is one).
-    p2 = np.concatenate((poses[:175], poses[275:]))
-    b2 = np.concatenate((betas[:175], betas[275:]))
+    p2 = np.concatenate((poses[:150], poses[200:]))
+    b2 = np.concatenate((betas[:150], betas[200:]))
     enabled_frames2 = np.ones(N, dtype=bool)
-    enabled_frames2[175:275] = 0
+    enabled_frames2[150:200] = 0
     smpl_layer2 = SMPLLayer(model_type="smpl", gender="neutral", device=C.device)
     smpl_seq2 = SMPLSequence(
         poses_body=p2[:, 3 : 24 * 3],

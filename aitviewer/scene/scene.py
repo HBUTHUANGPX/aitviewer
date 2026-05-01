@@ -216,7 +216,7 @@ class Scene(Node):
 
     def make_renderable(self, ctx):
         self.ctx = ctx
-        rs = self.collect_nodes(req_enabled=False)
+        rs = self.collect_nodes(req_is_active=False)
         for r in rs:
             r.make_renderable(self.ctx)
 
@@ -275,13 +275,13 @@ class Scene(Node):
         else:
             raise ValueError(f"Invalid light mode: {mode}")
 
-    def collect_nodes(self, req_enabled=True, obj_type=Node):
+    def collect_nodes(self, req_is_active=True, obj_type=Node):
         nodes = []
 
         # Use head recursion in order to collect the most deep nodes first
         # These are likely to be nodes which should be rendered first (i.e. transparent parent nodes should be last)
         def rec_collect_nodes(nn):
-            if not req_enabled or nn.enabled:
+            if not req_is_active or nn.is_active:
                 if isinstance(nn, obj_type):
                     nodes.append(nn)
                 for n_child in nn.nodes:
@@ -527,7 +527,7 @@ class Scene(Node):
     @property
     def n_frames(self):
         n_frames = 1
-        ns = self.collect_nodes(req_enabled=False)
+        ns = self.collect_nodes(req_is_active=False)
         for n in ns:
             if n._enabled_frames is None:
                 n_frames = max(n_frames, n.n_frames)
