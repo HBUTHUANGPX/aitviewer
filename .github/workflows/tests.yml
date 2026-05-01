@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-13]
+        os: [ubuntu-latest, macos-15]
         python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v3
@@ -24,6 +24,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: setup.py
       - name: Install dependencies
+        env:
+          INSTALL_PYQT6: ${{ startsWith(matrix.os, 'macos') && '1' || '0' }}
         run: |
           python -m pip install --upgrade pip
           pip install pytest
