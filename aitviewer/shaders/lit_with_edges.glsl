@@ -1,6 +1,6 @@
 #version 400
 
-// Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+// Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 
 #define SMOOTH_SHADING 0
 #define TEXTURE 0

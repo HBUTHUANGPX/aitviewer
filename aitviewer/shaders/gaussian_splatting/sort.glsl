@@ -3,7 +3,7 @@
 #extension GL_ARB_shader_ballot : require
 #extension GL_KHR_shader_subgroup_arithmetic : require
 
-// Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+// Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 
 // Adapted from parallelsort algorithm in FidelityFX-SDK
 // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/tree/main

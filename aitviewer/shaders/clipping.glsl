@@ -1,4 +1,4 @@
-// Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+// Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 
 uniform ivec3 clip_control = ivec3(0, 0, 0);
 uniform vec3 clip_value;
