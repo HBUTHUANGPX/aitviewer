@@ -39,3 +39,9 @@ jobs:
         run: |
           cd tests
           pytest
+      - name: Upload failure images
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-images-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: tests/failure/
