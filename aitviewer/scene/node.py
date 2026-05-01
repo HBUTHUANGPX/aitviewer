@@ -411,7 +411,7 @@ class Node(object):
             return
         if self.enabled_frames is not None:
             # We set this here because it's possible that the initializer of self did not set it
-            # if enabled_frames was not passed into it. This can happen if a Node does not pass 
+            # if enabled_frames was not passed into it. This can happen if a Node does not pass
             # the enabled_frames array to a child that it creates in its initializer.
             n.enabled_frames = self.enabled_frames
         n._show_in_hierarchy = show_in_hierarchy
