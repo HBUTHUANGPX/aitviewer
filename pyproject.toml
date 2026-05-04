@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "aitviewer"
@@ -46,16 +46,19 @@ dependencies = [
     "usd-core>=23.5",
     "black>=26.3.0",
     "isort",
-    "PyQt5>=5.15.4",
+    "PyQt6>=6.5.2",
 ]
 
 [project.optional-dependencies]
-pyqt6 = ["PyQt6>=6.5.2"]
+pyqt5 = ["PyQt5>=5.15.4"]
 
 [project.urls]
 Documentation = "https://eth-ait.github.io/aitviewer/"
 Source = "https://github.com/eth-ait/aitviewer"
 "Bug Tracker" = "https://github.com/eth-ait/aitviewer/issues"
+
+[tool.setuptools.packages.find]
+include = ["aitviewer*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "aitviewer.__version__"}
@@ -66,3 +69,12 @@ profile = "black"
 [tool.black]
 line-length = 120
 target-version = ['py310']
+
+[tool.pytest.ini_options]
+addopts = "-rs"
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning:chumpy.*:",
+    "ignore::DeprecationWarning:skvideo.*:",
+    "ignore::DeprecationWarning:smplx.*:",
+]
