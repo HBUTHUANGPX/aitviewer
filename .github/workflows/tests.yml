@@ -48,11 +48,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install --find-links dist aitviewer
-      - name: Setup display
+      - name: Setup display (Linux)
         if: runner.os == 'Linux'
         run: |
           export DISPLAY=:0.0
           Xvfb :0 -screen 0 640x480x24 &
+      - name: Setup Mesa (Windows)
+        if: runner.os == 'Windows'
+        uses: ssciwr/setup-mesa-opengl@v2
       - name: Run tests
         run: pytest tests
       - name: Upload failure images
@@ -77,6 +80,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          skip_existing: true
 
   test-testpypi:
     needs: publish-testpypi
