@@ -8,18 +8,24 @@ A set of tools to visualize and interact with sequences of 3D data with cross-pl
 ## Installation
 Basic Installation:
 ```commandline
-pip install aitviewer
+uv pip install aitviewer
 ```
+or drop the `uv` if you do not use it.
+
 Note that this does not install the GPU-version of PyTorch automatically. If your environment already contains it, you should be good to go, otherwise install it manually.
 
-Or install locally (if you need to extend or modify code)
+This installs PyQt6. If you require PyQt5, install via
+
+```commandline
+uv pip install aitviewer[pyqt5]
+```
+
+If you need to extend or modify the code, install from source via
 ```commandline
 git clone git@github.com:eth-ait/aitviewer.git
 cd aitviewer
 pip install -e .
 ```
-
-On macOS with Apple Silicon it is recommended to use PyQt6. Please check [this issue](https://github.com/eth-ait/aitviewer/issues/22) for installation instructions.
 
 For more advanced installation and for installing SMPL body models, please refer to the [documentation](https://eth-ait.github.io/aitviewer/parametric_human_models/supported_models.html) .
 
@@ -41,17 +47,18 @@ For more advanced installation and for installing SMPL body models, please refer
 
 
 ## Quickstart
-Display an SMPL T-pose (Requires SMPL models):
+Display an SMPL-X T-pose (Requires SMPL models to be installed):
 ```py
+from aitviewer.models.smpl import SMPLLayer
 from aitviewer.renderables.smpl import SMPLSequence
 from aitviewer.viewer import Viewer
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     v = Viewer()
-    v.scene.add(SMPLSequence.t_pose())
+    smpl_layer = SMPLLayer(model_type="smplx", gender="neutral")
+    v.scene.add(SMPLSequence.reference_pose(smpl_layer))
     v.run()
 ```
-
 
 ## Projects using the aitviewer
 A sampling of projects using the aitviewer. Let us know if you want to be added to this list!
