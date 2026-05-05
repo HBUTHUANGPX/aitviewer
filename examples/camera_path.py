@@ -10,7 +10,9 @@ from aitviewer.viewer import Viewer
 
 if __name__ == "__main__":
     # Create a neutral SMPL T Pose.
-    smpl_template = SMPLSequence.reference_pose(SMPLLayer(model_type="smpl", gender="neutral", device=C.device), name="SMPL")
+    smpl_template = SMPLSequence.reference_pose(
+        SMPLLayer(model_type="smpl", gender="neutral", device=C.device), name="SMPL"
+    )
 
     d = 10  # Distance from the object at start and end.
     r = 3  # Radius of the circle around the object.
