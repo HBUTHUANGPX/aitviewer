@@ -1,6 +1,80 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aitviewer"
+dynamic = ["version"]
+description = "Viewing and rendering of sequences of 3D data."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [
+    { name = "Manuel Kaufmann" },
+    { name = "Velko Vechev" },
+    { name = "Dario Mylonopoulos" },
+]
+keywords = [
+    "viewer",
+    "moderngl",
+    "machine learning",
+    "sequences",
+    "smpl",
+    "computer graphics",
+    "computer vision",
+    "3D",
+    "meshes",
+    "visualization",
+]
+dependencies = [
+    "torch>=1.6.0",
+    "numpy>=1.18",
+    "opencv-contrib-python-headless>=4.5.1.48",
+    "smplx",
+    "moderngl-window==3.1.1",
+    "moderngl==5.12.0",
+    "imgui==2.0.0",
+    "tqdm>=4.60.0",
+    "trimesh>=4.4,<5",
+    "scipy>=1.5.2",
+    "omegaconf>=2.1.1",
+    "roma>=1.2.3",
+    "joblib",
+    "scikit-image>=0.9.0",
+    "scikit-video",
+    "Pillow",
+    "websockets",
+    "usd-core>=23.5",
+    "black>=26.3.0",
+    "isort",
+    "PyQt6>=6.5.2",
+]
+
+[project.optional-dependencies]
+pyqt5 = ["PyQt5>=5.15.4"]
+
+[project.urls]
+Documentation = "https://eth-ait.github.io/aitviewer/"
+Source = "https://github.com/eth-ait/aitviewer"
+"Bug Tracker" = "https://github.com/eth-ait/aitviewer/issues"
+
+[tool.setuptools.packages.find]
+include = ["aitviewer*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "aitviewer.__version__"}
+
 [tool.isort]
 profile = "black"
 
 [tool.black]
 line-length = 120
-target-version = ['py39']
+target-version = ['py310']
+
+[tool.pytest.ini_options]
+addopts = "-rs"
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning:chumpy.*:",
+    "ignore::DeprecationWarning:skvideo.*:",
+    "ignore::DeprecationWarning:smplx.*:",
+]

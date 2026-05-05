@@ -7,8 +7,10 @@ authors:
 - family-names: "Vechev"
   given-names: "Velko"
   orcid: "https://orcid.org/0000-0002-1328-153X"
-title: "AITViewer"
-version: 1.0
+- family-names: "Mylonopoulos"
+  given-names: "Dario"
+title: "aitviewer"
+version: 1.14.0
 doi: 10.5281/zenodo.10013305
 date-released: 2022-07-10
 url: "https://github.com/eth-ait/aitviewer"

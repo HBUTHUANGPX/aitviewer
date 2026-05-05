@@ -1,4 +1,4 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import numpy as np
 
 from aitviewer.configuration import CONFIG as C
@@ -10,7 +10,7 @@ from aitviewer.viewer import Viewer
 
 if __name__ == "__main__":
     # Create a neutral SMPL T Pose.
-    smpl_template = SMPLSequence.t_pose(SMPLLayer(model_type="smpl", gender="neutral", device=C.device), name="SMPL")
+    smpl_template = SMPLSequence.reference_pose(SMPLLayer(model_type="smpl", gender="neutral", device=C.device), name="SMPL")
 
     d = 10  # Distance from the object at start and end.
     r = 3  # Radius of the circle around the object.

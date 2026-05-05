@@ -1,10 +1,56 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 
 import ctypes
 
 import imgui
 import moderngl
 from moderngl_window.integrations.imgui import ModernglWindowRenderer
+
+
+def scale_imgui_style(scale):
+    """Scale imgui style sizes proportionally, mirroring ImGuiStyle::ScaleAllSizes, because it is not available
+    in pyimgui."""
+    if scale < 1.0:
+        return
+
+    s = imgui.get_style()
+
+    def f(v):
+        return v * scale
+
+    def v2(v):
+        return v[0] * scale, v[1] * scale
+
+    s.window_padding = v2(s.window_padding)
+    s.window_rounding = f(s.window_rounding)
+    s.window_border_size = f(s.window_border_size)
+    s.window_min_size = v2(s.window_min_size)
+    s.child_rounding = f(s.child_rounding)
+    s.child_border_size = f(s.child_border_size)
+    s.popup_rounding = f(s.popup_rounding)
+    s.popup_border_size = f(s.popup_border_size)
+    s.frame_padding = v2(s.frame_padding)
+    s.frame_rounding = f(s.frame_rounding)
+    s.frame_border_size = f(s.frame_border_size)
+    s.item_spacing = v2(s.item_spacing)
+    s.item_inner_spacing = v2(s.item_inner_spacing)
+    s.cell_padding = v2(s.cell_padding)
+    s.touch_extra_padding = v2(s.touch_extra_padding)
+    s.indent_spacing = f(s.indent_spacing)
+    s.columns_min_spacing = f(s.columns_min_spacing)
+    s.scrollbar_size = f(s.scrollbar_size)
+    s.scrollbar_rounding = f(s.scrollbar_rounding)
+    s.grab_min_size = f(s.grab_min_size)
+    s.grab_rounding = f(s.grab_rounding)
+    s.log_slider_deadzone = f(s.log_slider_deadzone)
+    s.tab_rounding = f(s.tab_rounding)
+    s.tab_border_size = f(s.tab_border_size)
+    tmw = s.tab_min_width_for_close_button
+    if 0 < tmw < 1e37:
+        s.tab_min_width_for_close_button = f(tmw)
+    s.display_window_padding = v2(s.display_window_padding)
+    s.display_safe_area_padding = v2(s.display_safe_area_padding)
+    s.mouse_cursor_scale = f(s.mouse_cursor_scale)
 
 
 class ImGuiRenderer(ModernglWindowRenderer):

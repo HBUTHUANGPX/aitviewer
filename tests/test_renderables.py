@@ -1,4 +1,4 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import os
 
 import numpy as np
@@ -89,12 +89,12 @@ def test_obj(viewer: Viewer):
 @reference()
 @requires_smpl
 def test_smplh(viewer: Viewer):
-    smplh_male = SMPLSequence.t_pose(
+    smplh_male = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smplh", gender="male", device=C.device),
         name="SMPL",
         position=np.array((-1, 0.0, 0.0)),
     )
-    smplh_female = SMPLSequence.t_pose(
+    smplh_female = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smplh", gender="female", device=C.device),
         name="SMPL",
         position=np.array((1, 0.0, 0.0)),
@@ -106,17 +106,17 @@ def test_smplh(viewer: Viewer):
 @reference()
 @requires_smpl
 def test_smpl(viewer: Viewer):
-    smpl_male = SMPLSequence.t_pose(
+    smpl_male = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="male", device=C.device),
         name="SMPL",
         position=np.array((-1.5, 0, 0)),
     )
-    smpl_neutral = SMPLSequence.t_pose(
+    smpl_neutral = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="neutral", device=C.device),
         name="SMPL",
         position=np.array((0, 0, 0)),
     )
-    smpl_female = SMPLSequence.t_pose(
+    smpl_female = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="female", device=C.device),
         name="SMPL",
         position=np.array((1.5, 0, 0)),
@@ -128,17 +128,17 @@ def test_smpl(viewer: Viewer):
 @reference()
 @requires_smpl
 def test_smplx(viewer: Viewer):
-    smplx_male = SMPLSequence.t_pose(
+    smplx_male = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smplx", gender="male", device=C.device),
         name="SMPL",
         position=np.array((-1.5, 0, 0)),
     )
-    smplx_neutral = SMPLSequence.t_pose(
+    smplx_neutral = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smplx", gender="neutral", device=C.device),
         name="SMPL",
         position=np.array((0, 0, 0)),
     )
-    smplx_female = SMPLSequence.t_pose(
+    smplx_female = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smplx", gender="female", device=C.device),
         name="SMPL",
         position=np.array((1.5, 0, 0)),

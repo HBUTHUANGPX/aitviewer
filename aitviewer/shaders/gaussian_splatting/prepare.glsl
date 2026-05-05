@@ -1,6 +1,6 @@
 #version 450
 
-// Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+// Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 
 #include gaussian_splatting/common.glsl
 

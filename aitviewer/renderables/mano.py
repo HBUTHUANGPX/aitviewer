@@ -1,4 +1,4 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 from typing import IO, Union
 
 import numpy as np
@@ -89,8 +89,8 @@ class MANOSequence(SMPLSequence):
         )
 
     @classmethod
-    def t_pose(cls, mano_layer=None, betas=None, frames=1, **kwargs):
-        """Creates a SMPL sequence whose single frame is a SMPL mesh in T-Pose."""
+    def reference_pose(cls, mano_layer=None, betas=None, frames=1, **kwargs):
+        """Creates a MANO sequence whose single frame is the reference pose."""
 
         if mano_layer is None:
             mano_layer = MANOLayer()

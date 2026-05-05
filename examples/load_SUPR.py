@@ -1,4 +1,4 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 from aitviewer.renderables.supr import SUPRLayer, SUPRSequence
 from aitviewer.viewer import Viewer
 
@@ -18,7 +18,7 @@ from aitviewer.viewer import Viewer
 model = SUPRLayer(constrained=False)
 
 # Create a male SUPR T Pose.
-template = SUPRSequence.t_pose(model, color=(0.62, 0.62, 0.62, 0.8))
+template = SUPRSequence.reference_pose(model, color=(0.62, 0.62, 0.62, 0.8))
 
 v = Viewer()
 v.scene.add(template)

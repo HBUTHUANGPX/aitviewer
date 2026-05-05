@@ -1,4 +1,4 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import os
 import pickle as pkl
 from typing import IO, Union
@@ -305,7 +305,7 @@ class SMPLSequence(Node):
         return seqs, camera_data
 
     @classmethod
-    def t_pose(cls, smpl_layer=None, betas=None, frames=1, **kwargs):
+    def reference_pose(cls, smpl_layer=None, betas=None, frames=1, **kwargs):
         """Creates a SMPL sequence whose single frame is a SMPL mesh in T-Pose."""
 
         if smpl_layer is None:

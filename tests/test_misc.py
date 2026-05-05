@@ -1,4 +1,4 @@
-# Copyright (C) 2023  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
+# Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import os
 from tempfile import TemporaryDirectory
 
@@ -65,12 +65,12 @@ def test_headless(viewer: HeadlessRenderer):
 @reference()
 @requires_smpl
 def test_normals(viewer: Viewer):
-    smpl_transparent = SMPLSequence.t_pose(
+    smpl_transparent = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="male", device=C.device),
         name="SMPL",
         position=np.array((-1, 0.0, 0.0)),
     )
-    smpl_opaque = SMPLSequence.t_pose(
+    smpl_opaque = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="male", device=C.device),
         name="SMPL",
         position=np.array((1, 0.0, 0.0)),
@@ -87,7 +87,6 @@ def test_normals(viewer: Viewer):
 
 @reference()
 def test_empty(viewer: Viewer):
-    viewer.scene.add(viewer.scene.floor)
     viewer.scene.add(viewer.scene.origin)
     viewer.scene.camera.position = np.array([0.2, 0.2, 0.2])
     viewer.scene.camera.target = np.array([0.0, 0.0, 0.0])
