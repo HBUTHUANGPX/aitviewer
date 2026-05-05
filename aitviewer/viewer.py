@@ -155,6 +155,15 @@ class Viewer(moderngl_window.WindowConfig):
             self.window.set_icon(icon_path=icon_path)
         except:
             pass
+        if sys.platform == "darwin":
+            # On macOS the dock icon must be set at the QApplication level.
+            if self.window_type == "pyqt6":
+                from PyQt6.QtGui import QIcon
+                from PyQt6.QtWidgets import QApplication
+            else:
+                from PyQt5.QtGui import QIcon
+                from PyQt5.QtWidgets import QApplication
+            QApplication.instance().setWindowIcon(QIcon(icon_path))
 
         self.timer = PerfTimer()
         self.ctx = self.window.ctx
