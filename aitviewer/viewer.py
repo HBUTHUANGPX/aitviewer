@@ -101,7 +101,7 @@ class Viewer(moderngl_window.WindowConfig):
             self.window_type = C.window_type
 
             # If Qt5 configured but it is not installed, automatically upgrade to Qt6
-            # This is for convenience so that aitviewer versions >= 1.14 still work with 
+            # This is for convenience so that aitviewer versions >= 1.14 still work with
             # old config files that the user might not have updated.
             if self.window_type == "pyqt5":
                 try:
