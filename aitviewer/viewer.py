@@ -1,6 +1,7 @@
 # Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import copy
 import os
+import subprocess
 import sys
 from array import array
 from collections import namedtuple
@@ -9,8 +10,6 @@ from typing import Dict, List, Tuple, Union
 
 import imgui
 import moderngl_window
-import subprocess
-
 import numpy as np
 from moderngl_window import activate_context, get_local_window_cls
 from PIL import Image
@@ -32,6 +31,7 @@ from aitviewer.utils import path
 from aitviewer.utils.imgui_integration import ImGuiRenderer, scale_imgui_style
 from aitviewer.utils.perf_timer import PerfTimer
 from aitviewer.utils.utils import get_video_paths, video_to_gif
+
 
 class FFmpegWriter:
     """Thin ffmpeg pipe writer, replaces scikit-video which broke on NumPy 2.0."""
