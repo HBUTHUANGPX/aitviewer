@@ -40,7 +40,6 @@ dependencies = [
     "roma>=1.2.3",
     "joblib",
     "scikit-image>=0.9.0",
-    "scikit-video",
     "Pillow",
     "websockets",
     "usd-core>=23.5",

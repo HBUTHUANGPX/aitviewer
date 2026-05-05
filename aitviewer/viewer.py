@@ -1,6 +1,7 @@
 # Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import copy
 import os
+import subprocess
 import sys
 from array import array
 from collections import namedtuple
@@ -30,6 +31,41 @@ from aitviewer.utils import path
 from aitviewer.utils.imgui_integration import ImGuiRenderer, scale_imgui_style
 from aitviewer.utils.perf_timer import PerfTimer
 from aitviewer.utils.utils import get_video_paths, video_to_gif
+
+
+class FFmpegWriter:
+    """Thin ffmpeg pipe writer, replaces scikit-video which broke on NumPy 2.0."""
+
+    def __init__(self, path, inputdict, outputdict):
+        self._path = path
+        self._inputdict = inputdict
+        self._outputdict = outputdict
+        self._proc = None
+
+    def _start(self, frame):
+        h, w = frame.shape[:2]
+        pix_fmt = "rgba" if frame.ndim == 3 and frame.shape[2] == 4 else "rgb24"
+        input_args = [a for k, v in self._inputdict.items() for a in (k, str(v))]
+        output_args = [a for k, v in self._outputdict.items() for a in (k, str(v))]
+        cmd = (
+            ["ffmpeg", "-y"]
+            + input_args
+            + ["-f", "rawvideo", "-pix_fmt", pix_fmt, "-s", f"{w}x{h}", "-i", "pipe:0"]
+            + output_args
+            + [self._path]
+        )
+        self._proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+
+    def writeFrame(self, frame):
+        if self._proc is None:
+            self._start(frame)
+        self._proc.stdin.write(frame.tobytes())
+
+    def close(self):
+        if self._proc is not None:
+            self._proc.stdin.close()
+            self._proc.wait()
+
 
 MeshMouseIntersection = namedtuple(
     "MeshMouseIntersection",
@@ -155,6 +191,15 @@ class Viewer(moderngl_window.WindowConfig):
             self.window.set_icon(icon_path=icon_path)
         except:
             pass
+        if sys.platform == "darwin":
+            # On macOS the dock icon must be set at the QApplication level.
+            if self.window_type == "pyqt6":
+                from PyQt6.QtGui import QIcon
+                from PyQt6.QtWidgets import QApplication
+            else:
+                from PyQt5.QtGui import QIcon
+                from PyQt5.QtWidgets import QApplication
+            QApplication.instance().setWindowIcon(QIcon(icon_path))
 
         self.timer = PerfTimer()
         self.ctx = self.window.ctx
@@ -1867,9 +1912,6 @@ class Viewer(moderngl_window.WindowConfig):
         quality="medium",
         ensure_no_overwrite=True,
     ):
-        # Load this module to reduce load time.
-        import skvideo.io
-
         if rotate_camera and not isinstance(self.scene.camera, ViewerCamera):
             print("Cannot export a video with camera rotation while using a camera that is not a ViewerCamera")
             return
@@ -1965,7 +2007,7 @@ class Viewer(moderngl_window.WindowConfig):
                     }
                 )
 
-            writer = skvideo.io.FFmpegWriter(
+            writer = FFmpegWriter(
                 path_video,
                 inputdict={
                     "-framerate": str(output_fps),
