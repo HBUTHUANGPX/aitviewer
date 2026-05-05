@@ -156,8 +156,8 @@ class STARSequence(SMPLSequence):
         raise ValueError("STAR does not support loading from 3DPW.")
 
     @classmethod
-    def t_pose(cls, model=None, betas=None, frames=1, **kwargs):
-        """Creates a SMPL sequence whose single frame is a SMPL mesh in T-Pose."""
+    def reference_pose(cls, model=None, betas=None, frames=1, **kwargs):
+        """Creates a STAR sequence whose single frame is a STAR mesh in T-Pose."""
 
         if model is None:
             model = STARLayer(device=C.device)

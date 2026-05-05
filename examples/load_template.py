@@ -9,13 +9,13 @@ from aitviewer.viewer import Viewer
 if __name__ == "__main__":
     # Create a neutral SMPL T Pose.
     # This also works with `smplh` or `smplx` model type (but there's no neutral model for SMPL-H).
-    smplh_template = SMPLSequence.t_pose(SMPLLayer(model_type="smplh", gender="neutral", device=C.device), name="SMPL")
-    mano_template = SMPLSequence.t_pose(
+    smplh_template = SMPLSequence.reference_pose(SMPLLayer(model_type="smplh", gender="neutral", device=C.device), name="SMPL")
+    mano_template = SMPLSequence.reference_pose(
         SMPLLayer(model_type="mano", gender="neutral", device=C.device),
         position=np.array((-1.0, 0.0, 0.0)),
         name="MANO",
     )
-    flame_template = SMPLSequence.t_pose(
+    flame_template = SMPLSequence.reference_pose(
         SMPLLayer(model_type="flame", gender="neutral", device=C.device),
         position=np.array((1.0, 0.0, 0.0)),
         name="FLAME",

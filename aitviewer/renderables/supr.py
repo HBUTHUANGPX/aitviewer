@@ -111,8 +111,8 @@ class SUPRSequence(SMPLSequence):
         raise ValueError("SUPR does not support loading from 3DPW.")
 
     @classmethod
-    def t_pose(cls, model=None, betas=None, frames=1, **kwargs):
-        """Creates a SMPL sequence whose single frame is a SMPL mesh in T-Pose."""
+    def reference_pose(cls, model=None, betas=None, frames=1, **kwargs):
+        """Creates a SUPR sequence whose single frame is a SUPR mesh in T-Pose."""
 
         if model is None:
             model = SUPRLayer(device=C.device)

@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # Quickly create a a default hand, which is the right hand, using PCA.
     # Note that MANO hands are editable like SMPL bodies, but when using PCA
     # the editing is funky because the PCA conversion is lossy.
-    mano_seq_rh = MANOSequence.t_pose()
+    mano_seq_rh = MANOSequence.reference_pose()
     v.scene.add(mano_seq_rh)
 
     # Create a left hand using joint angles.

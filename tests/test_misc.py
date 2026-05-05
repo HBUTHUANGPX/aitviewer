@@ -65,12 +65,12 @@ def test_headless(viewer: HeadlessRenderer):
 @reference()
 @requires_smpl
 def test_normals(viewer: Viewer):
-    smpl_transparent = SMPLSequence.t_pose(
+    smpl_transparent = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="male", device=C.device),
         name="SMPL",
         position=np.array((-1, 0.0, 0.0)),
     )
-    smpl_opaque = SMPLSequence.t_pose(
+    smpl_opaque = SMPLSequence.reference_pose(
         SMPLLayer(model_type="smpl", gender="male", device=C.device),
         name="SMPL",
         position=np.array((1, 0.0, 0.0)),

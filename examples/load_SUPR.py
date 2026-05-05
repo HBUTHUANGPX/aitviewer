@@ -18,7 +18,7 @@ from aitviewer.viewer import Viewer
 model = SUPRLayer(constrained=False)
 
 # Create a male SUPR T Pose.
-template = SUPRSequence.t_pose(model, color=(0.62, 0.62, 0.62, 0.8))
+template = SUPRSequence.reference_pose(model, color=(0.62, 0.62, 0.62, 0.8))
 
 v = Viewer()
 v.scene.add(template)
