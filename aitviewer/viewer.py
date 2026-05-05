@@ -27,7 +27,7 @@ from aitviewer.server import ViewerServer
 from aitviewer.shaders import clear_shader_cache
 from aitviewer.streamables.streamable import Streamable
 from aitviewer.utils import path
-from aitviewer.utils.imgui_integration import ImGuiRenderer
+from aitviewer.utils.imgui_integration import ImGuiRenderer, scale_imgui_style
 from aitviewer.utils.perf_timer import PerfTimer
 from aitviewer.utils.utils import get_video_paths, video_to_gif
 
@@ -156,14 +156,27 @@ class Viewer(moderngl_window.WindowConfig):
 
         # Create GUI context
         self.imgui_ctx = imgui.create_context()
+
+        # Load both fonts before ImGuiRenderer so the atlas is pre-populated.
+        # ImGui skips inserting ProggyClean when the atlas is already non-empty,
+        # making ProggyVector font #0 (the default for all widgets).
+        self.font_dir = Path(__file__).parent / "resources" / "fonts"
+        io = imgui.get_io()
+
+        # For high-density displays like retina, scale the font so that it looks crisp.
+        font_scaling_factor = self.window.pixel_ratio
+        io.fonts.add_font_from_file_ttf(
+            os.path.join(self.font_dir, "ProggyVector.ttf"), C.font_size * font_scaling_factor
+        )
+        self.custom_font = io.fonts.add_font_from_file_ttf(
+            os.path.join(self.font_dir, "Custom.ttf"), C.font_size * font_scaling_factor
+        )
+        io.font_global_scale /= font_scaling_factor
+
         self.imgui = ImGuiRenderer(self.wnd, self.window_type)
         self.imgui_user_interacting = False
 
-        # Custom UI Font
-        self.font_dir = Path(__file__).parent / "resources" / "fonts"
-        self.fonts = imgui.get_io().fonts
-        self.custom_font = self.fonts.add_font_from_file_ttf(os.path.join(self.font_dir, "Custom.ttf"), 15)
-        self.imgui.refresh_font_texture()
+        scale_imgui_style(C.font_size / 13.0)
 
         self.modes = {
             "view": {"title": " View", "shortcut": "V"},
@@ -1127,7 +1140,7 @@ class Viewer(moderngl_window.WindowConfig):
                 array("f", (1.0 / self._past_frametimes).tolist()),
                 scale_min=0,
                 scale_max=100.0,
-                graph_size=(100, 20),
+                graph_size=(100, round(20 * C.font_size / 13.0)),
             )
 
             _, self.playback_fps = imgui.drag_float(
@@ -1306,7 +1319,6 @@ class Viewer(moderngl_window.WindowConfig):
                             imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 1.0, 1.0, 0.4)
 
                         # Title
-                        imgui.push_font(self.custom_font)
                         imgui.push_style_var(imgui.STYLE_FRAME_PADDING, (0, 2))
 
                         flags = imgui.TREE_NODE_OPEN_ON_ARROW | imgui.TREE_NODE_FRAME_PADDING
@@ -1319,7 +1331,6 @@ class Viewer(moderngl_window.WindowConfig):
                         )
 
                         imgui.pop_style_var()
-                        imgui.pop_font()
 
                         if r != self:
                             # Aligns checkbox to the right side of the window
