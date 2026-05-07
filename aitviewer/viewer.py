@@ -316,8 +316,10 @@ class Viewer(moderngl_window.WindowConfig):
             self.scene.release()
 
         # Setup scene
+        w, h = self.wnd.buffer_size
         self.scene = Scene()
-        self.scene.camera = ViewerCamera(45.0)
+        # Pass width and height to make sure matrices are initialized.
+        self.scene.camera = ViewerCamera(45.0, width=w, height=h)
         self.scene.custom_font = self.custom_font
 
         # Settings

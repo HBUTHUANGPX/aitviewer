@@ -860,7 +860,7 @@ class ViewerCamera(CameraInterface):
     This camera also supports orbiting, panning and generating camera rays.
     """
 
-    def __init__(self, fov=45, orthographic=None, znear=None, zfar=None):
+    def __init__(self, fov=45, orthographic=None, znear=None, zfar=None, width=None, height=None):
         super(ViewerCamera, self).__init__()
         self.fov = fov
         self.is_ortho = orthographic is not None
@@ -899,6 +899,10 @@ class ViewerCamera(CameraInterface):
         self._animation_end_position = None
         self._animation_start_target = None
         self._animation_end_target = None
+
+        # If width and height are given, initialize the matrices.
+        if width is not None and height is not None:
+            self.update_matrices(width, height)
 
     @property
     def control_mode(self):
