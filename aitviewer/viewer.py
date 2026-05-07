@@ -136,14 +136,14 @@ class Viewer(moderngl_window.WindowConfig):
         if self.window_type is None:
             self.window_type = C.window_type
 
-            # If Qt5 configured but it is not installed, automatically upgrade to Qt6
-            # This is for convenience so that aitviewer versions >= 1.14 still work with
-            # old config files that the user might not have updated.
-            if self.window_type == "pyqt5":
-                try:
-                    from PyQt5.QtCore import Qt
-                except ImportError:
-                    self.window_type = "pyqt6"
+        # If Qt5 configured but it is not installed, automatically upgrade to Qt6
+        # This is for convenience so that aitviewer versions >= 1.14 still work with
+        # old config files that the user might not have updated.
+        if self.window_type == "pyqt5":
+            try:
+                from PyQt5.QtCore import Qt
+            except ImportError:
+                self.window_type = "pyqt6"
 
         # HACK: We use our own version of the PyQt5 windows to override
         # part of the initialization that crashes on Python >= 3.10.
@@ -191,7 +191,7 @@ class Viewer(moderngl_window.WindowConfig):
             self.window.set_icon(icon_path=icon_path)
         except:
             pass
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" and self.window_type != "headless":
             # On macOS the dock icon must be set at the QApplication level.
             if self.window_type == "pyqt6":
                 from PyQt6.QtGui import QIcon
