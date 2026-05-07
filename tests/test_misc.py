@@ -62,6 +62,23 @@ def test_headless(viewer: HeadlessRenderer):
         assert not os.path.exists(frames)
 
 
+@noreference
+@requires_ffmpeg
+def test_export_360_video(viewer: HeadlessRenderer):
+    N = 180
+    cube = trimesh.load(os.path.join(RESOURCE_DIR, "cube.obj"))
+    positions = np.linspace(np.array([0, 0, 0]), np.array([5, 0, 0]), num=N)
+    mesh = Meshes(cube.vertices, cube.faces, position=positions, color=(0.5, 0, 0, 1), flat_shading=True)
+
+    viewer.scene.add(mesh)
+    with TemporaryDirectory() as temp:
+        mp4_path = os.path.join(temp, "video.mp4")
+        viewer.save_video(video_dir=mp4_path, output_fps=30, rotate_camera=True)
+        mp4_path = os.path.join(temp, "video_0.mp4")
+        assert os.path.exists(mp4_path), "MP4 file not found"
+        assert os.path.getsize(mp4_path) > 1024, "MP4 file is too small"
+
+
 @reference()
 @requires_smpl
 def test_normals(viewer: Viewer):

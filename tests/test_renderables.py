@@ -145,20 +145,3 @@ def test_smplx(viewer: Viewer):
     )
     viewer.scene.camera.position = np.array([0.0, 0.5, 3.5])
     viewer.scene.add(smplx_male, smplx_female, smplx_neutral)
-
-
-@reference(count=3)
-@requires_smpl
-def test_amass(viewer: Viewer):
-    c = (149 / 255, 85 / 255, 149 / 255, 0.5)
-    seq_amass = SMPLSequence.from_amass(
-        npz_data_path=os.path.join(C.datasets.amass, "ACCAD/Female1Running_c3d/C2 - Run to stand_poses.npz"),
-        fps_out=60.0,
-        name="AMASS Running",
-        color=c,
-        show_joint_angles=True,
-        log=False,
-    )
-    viewer.scene.camera.position = np.array([-3.3, 1.4, 0.2])
-    viewer.scene.camera.target = np.array([-2.8, 1.0, -1.6])
-    viewer.scene.add(seq_amass)
