@@ -65,6 +65,40 @@ class LocalSmplNpzLoaderTest(unittest.TestCase):
             self.assertEqual(params["poses_body"].shape, (5, 69))
             self.assertEqual(params["trans"].shape, (5, 3))
 
+    def test_parse_dict_smpl_poses_npy(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.npy"
+            np.save(
+                path,
+                {
+                    "poses": np.zeros((5, 72), dtype=np.float32),
+                    "trans": np.ones((5, 3), dtype=np.float32),
+                    "betas": np.zeros(10, dtype=np.float32),
+                    "mocap_frame_rate": np.array(30.0, dtype=np.float32),
+                },
+            )
+
+            params = parse_smpl_npz(path, FakeSmplLayer(), end_frame=3)
+
+            self.assertEqual(params["poses_root"].shape, (3, 3))
+            self.assertEqual(params["poses_body"].shape, (3, 69))
+            self.assertEqual(params["trans"].shape, (3, 3))
+
+    def test_parse_raw_pose_array_npy(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "poses.npy"
+            np.save(path, np.zeros((4, 72), dtype=np.float32))
+
+            params = parse_smpl_npz(path, FakeSmplLayer())
+
+            self.assertEqual(params["poses_root"].shape, (4, 3))
+            self.assertEqual(params["poses_body"].shape, (4, 69))
+            self.assertEqual(params["trans"].shape, (4, 3))
+
     def test_parse_aitviewer_export_npz(self):
         import tempfile
 

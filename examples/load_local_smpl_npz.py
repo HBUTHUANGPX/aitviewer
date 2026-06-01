@@ -13,7 +13,7 @@ from local_smpl_viewer import MODEL_SPECS, model_layer_kwargs, resolve_device, r
 
 
 POSE_KEYS = ("poses", "pose", "full_pose")
-TRANS_KEYS = ("trans", "transl", "translation", "translations")
+TRANS_KEYS = ("trans", "transl", "smpl_transl", "translation", "translations")
 ROOT_KEYS = ("poses_root", "root_orient", "global_orient", "smpl_global_orient")
 BODY_KEYS = ("poses_body", "body_pose", "smpl_body_pose")
 BETA_KEYS = ("betas", "smpl_betas", "shape", "shapes")
@@ -37,6 +37,26 @@ def slice_frames(array, start_frame=None, end_frame=None, stride=1):
     return array[start_frame:end_frame:stride]
 
 
+def load_smpl_data(path):
+    data = np.load(path, allow_pickle=True)
+    if hasattr(data, "keys"):
+        return data
+
+    array = np.asarray(data)
+    if array.dtype == object and array.size == 1:
+        item = array.item()
+        if hasattr(item, "keys"):
+            return item
+
+    if array.ndim >= 1 and np.issubdtype(array.dtype, np.number):
+        return {"poses": array}
+
+    raise ValueError(
+        f"Unsupported SMPL data in {path}. Expected a .npz, a .npy saved from a dict, "
+        "or a numeric pose array."
+    )
+
+
 def hand_dof(smpl_layer):
     if not hasattr(smpl_layer.bm, "NUM_HAND_JOINTS"):
         return 0
@@ -46,7 +66,7 @@ def hand_dof(smpl_layer):
 
 
 def parse_smpl_npz(npz_path, smpl_layer, start_frame=None, end_frame=None, stride=1):
-    data = np.load(npz_path, allow_pickle=True)
+    data = load_smpl_data(npz_path)
     keys = set(data.keys())
 
     root_key = first_key(data, ROOT_KEYS)
@@ -143,8 +163,8 @@ def make_mesh_from_params(params, smpl_layer, name):
 
 
 def parse_args():
-    parser = ArgumentParser(description="Load a local SMPL parameter .npz file in aitviewer.")
-    parser.add_argument("npz", type=Path, help="Path to a .npz with SMPL parameters.")
+    parser = ArgumentParser(description="Load a local SMPL parameter .npz or .npy file in aitviewer.")
+    parser.add_argument("npz", type=Path, help="Path to a .npz/.npy with SMPL parameters.")
     parser.add_argument("--model", choices=sorted(MODEL_SPECS), default="smpl", help="Body model type.")
     parser.add_argument("--model-path", type=Path, help="Override the local model path.")
     parser.add_argument("--gender", choices=("neutral", "female", "male"), help="Override model gender.")
@@ -178,7 +198,7 @@ def main():
     )
     params = parse_smpl_npz(args.npz, smpl_layer, args.start_frame, args.end_frame, args.stride)
 
-    print(f"Loaded npz: {args.npz}")
+    print(f"Loaded SMPL data: {args.npz}")
     print(f"  model:  {spec.model_type}")
     print(f"  model path: {model_path}")
     print(f"  frames: {params['poses_body'].shape[0]}")

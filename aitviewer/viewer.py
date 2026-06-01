@@ -1,5 +1,6 @@
 # Copyright (C) 2022-2026  ETH Zurich, Manuel Kaufmann, Velko Vechev, Dario Mylonopoulos
 import copy
+import importlib.util
 import os
 import subprocess
 import sys
@@ -109,6 +110,24 @@ SHORTCUTS = {
 }
 
 
+def _has_module(module_name, find_spec=importlib.util.find_spec):
+    try:
+        return find_spec(module_name) is not None
+    except ModuleNotFoundError:
+        return False
+
+
+def _resolve_qt_window_type(window_type, find_spec=importlib.util.find_spec):
+    has_pyqt5 = _has_module("PyQt5.QtCore", find_spec=find_spec)
+    has_pyqt6 = _has_module("PyQt6", find_spec=find_spec)
+
+    if window_type == "pyqt5" and not has_pyqt5:
+        return "pyqt6"
+    if window_type == "pyqt6" and not has_pyqt6 and has_pyqt5:
+        return "pyqt5"
+    return window_type
+
+
 class Viewer(moderngl_window.WindowConfig):
     resource_dir = Path(__file__).parent / "shaders"
     size_mult = 1.0
@@ -136,14 +155,8 @@ class Viewer(moderngl_window.WindowConfig):
         if self.window_type is None:
             self.window_type = C.window_type
 
-        # If Qt5 configured but it is not installed, automatically upgrade to Qt6
-        # This is for convenience so that aitviewer versions >= 1.14 still work with
-        # old config files that the user might not have updated.
-        if self.window_type == "pyqt5":
-            try:
-                from PyQt5.QtCore import Qt
-            except ImportError:
-                self.window_type = "pyqt6"
+        # Pick an available Qt binding when configs and installed packages differ.
+        self.window_type = _resolve_qt_window_type(self.window_type)
 
         # HACK: We use our own version of the PyQt5 windows to override
         # part of the initialization that crashes on Python >= 3.10.
@@ -594,6 +607,9 @@ class Viewer(moderngl_window.WindowConfig):
         self.window.destroy()
         if duration > 0 and log:
             print("Duration: {0:.2f}s @ {1:.2f} FPS".format(duration, self.window.frames / duration))
+
+    def render(self, time, frame_time):
+        return self.on_render(time, frame_time)
 
     def on_render(self, time, frame_time, export=False, transparent_background=False):
         """The main drawing function."""
